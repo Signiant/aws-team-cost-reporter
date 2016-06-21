@@ -1,0 +1,2 @@
+def id():
+    return "dynamodb"
