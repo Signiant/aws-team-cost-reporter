@@ -1,0 +1,45 @@
+cloudcheckr:
+  report_urls:
+    ec2: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=FOO&start=2016-06-01&end=2016-06-30&saved_filter_name=ec2costreport"
+    s3: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=FOO&start=2016-06-01&end=2016-06-30&saved_filter_name=s3costreport"
+    eb: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=FOO&start=2016-06-01&end=2016-06-30&saved_filter_name=ebcostreport"
+    dynamodb: "https://api.cloudcheckr.com/api/inventory.json/get_resources_dynamodb_details?access_key=FOO"
+
+teams:
+  - name: "team one"
+    email: team-one@acme.com
+    budget: 2000
+    members:
+      user1@acme.com
+      user2@acme.com
+    ec2:
+      member_tag: "acme:email"
+    s3:
+      member_tag: "acme:email"
+    eb:
+      env_tag: "elasticbeanstalk:environment-name"
+      envs:
+        "EB-ENV-USED-BY-TEAM-ONE"
+        "SECOND-EB-ENV-USED-BY-TEAM-ONE"
+    dynamodb:
+      tables:
+        "TEAM1_*"
+        "A_SPECIFIC_TABLE"
+  - name: "team two"
+    email: team-two@acme.com
+    budget: 2000
+    members:
+      user3@acme.com
+      user4@acme.com
+    ec2:
+      member_tag: "acme:email"
+    s3:
+      member_tag: "acme:email"
+    eb:
+      env_tag: "elasticbeanstalk:environment-name"
+      envs:
+        "EB-ENV-USED-BY-TEAM-TWO"
+        "SECOND-EB-ENV-USED-BY-TEAM-TWO"
+    dynamodb:
+      tables:
+        "TEAM2_*"
