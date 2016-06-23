@@ -1,42 +1,48 @@
-import imp
-import os
+import imp,argparse
+import os,sys
+import json,yaml
+import pprint
 
-pluginFolder = "./plugins"
-mainFile = "__init__"
+# Project modules
+import plugin
+import output
 
-def getAllPlugins():
-    plugins = []
-    possibleplugins = os.listdir(pluginFolder)
-    for i in possibleplugins:
-        location = os.path.join(pluginFolder, i)
-        if not os.path.isdir(location) or not mainFile + ".py" in os.listdir(location):
-            continue
-        info = imp.find_module(mainFile, [location])
-        plugins.append({"name": i, "info": info})
-    return plugins
+def readConfigFile(path):
+    configMap = []
 
-def loadPlugin(pluginName):
-    return imp.load_source(pluginName, os.path.join(pluginFolder, pluginName, mainFile + ".py"))
+    try:
+        config_file_handle = open(path)
+        configMap = yaml.load(config_file_handle)
+        config_file_handle.close()
+    except:
+        print "Error: Unable to open config file %s" % path
 
-def getConfigFilePath():
-    configPath = ""
+    return configMap
 
-    if "CONFIG_FILE" in os.environ:
-        configPath = os.environ["CONFIG_FILE"]
-    else:
-        configPath = "./config.yaml"
+## mainFile
+def main(argv):
+    plugin_results = dict()
 
-    return configPath
+    parser = argparse.ArgumentParser(description='Report on AWS costs by team')
+    parser.add_argument('-d','--debug', help='Enable debug output',action='store_true')
+    parser.add_argument('-c','--config', help='Full path to a config file',required=True)
+    parser.add_argument('-t','--team', help='Team name to generate the repot for',required=True)
+    args = parser.parse_args()
 
-# process ec2
-plugin = loadPlugin('ec2')
-retval = plugin.id()
+    configMap = readConfigFile(args.config)
 
-print str(retval)
+    if configMap:
+        # Invoke each of the plugins and store the results
+        for config_plugin in configMap['plugins']:
+            plugin_name = config_plugin['name']
+            print "Loading plugin %s" % plugin_name
+            plugin_handle = plugin.loadPlugin(plugin_name)
+            plugin_results[plugin_name] = plugin_handle.getTeamCost(configMap)
 
-plugin = loadPlugin('eb')
-retval = plugin.id()
+        if args.debug: pprint.pprint(plugin_results)
 
-print str(retval)
+        # Output the results for the run of each plugin
+        output.outputResults(plugin_results)
 
-print getConfigFilePath()
+if __name__ == "__main__":
+   main(sys.argv[1:])
