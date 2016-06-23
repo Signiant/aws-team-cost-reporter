@@ -1,5 +1,5 @@
 def id():
     return "s3"
 
-def getTeamCost(configMap):
-    return "getting team cost"
+def getTeamCost(team,configMap,debug):
+    return "getting team cost for %s" % team

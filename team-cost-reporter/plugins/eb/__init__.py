@@ -1,5 +1,5 @@
 def id():
     return "eb"
 
-def getTeamCost(configMap):
-    return "getting team cost"
+def getTeamCost(team,configMap,debug):
+    return "getting team cost for %s" % team

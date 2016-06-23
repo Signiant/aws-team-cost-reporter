@@ -23,6 +23,9 @@ def readConfigFile(path):
 def main(argv):
     plugin_results = dict()
 
+    # Add our folder to the system path
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
     parser = argparse.ArgumentParser(description='Report on AWS costs by team')
     parser.add_argument('-d','--debug', help='Enable debug output',action='store_true')
     parser.add_argument('-c','--config', help='Full path to a config file',required=True)
@@ -36,10 +39,12 @@ def main(argv):
         for config_plugin in configMap['plugins']:
             plugin_name = config_plugin['name']
             print "Loading plugin %s" % plugin_name
-            plugin_handle = plugin.loadPlugin(plugin_name)
-            plugin_results[plugin_name] = plugin_handle.getTeamCost(configMap)
 
-        if args.debug: pprint.pprint(plugin_results)
+            # Load the plugin from the plugins folder
+            plugin_handle = plugin.loadPlugin(plugin_name)
+
+            # Store the plugin output in a dict
+            plugin_results[plugin_name] = plugin_handle.getTeamCost(args.team,configMap,args.debug)
 
         # Output the results for the run of each plugin
         output.outputResults(plugin_results)
