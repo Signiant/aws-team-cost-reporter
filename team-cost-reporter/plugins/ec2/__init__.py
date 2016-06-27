@@ -15,8 +15,9 @@ def getTeamCost(team_name,configMap,debug):
     data_url = ''
     data = ''
     tag_to_match = ''
+    days_to_report = configMap['global']['days_to_report']
 
-    log("getting team cost for team: %s" % team_name)
+    log("getting team cost for team: %s for %i days" % (team_name,days_to_report))
 
     # get the data url for the ec2 plugin url
     for config_plugin in configMap['plugins']:
@@ -26,7 +27,7 @@ def getTeamCost(team_name,configMap,debug):
 
     if data_url:
         # get the report data from cloudcheckr which is by tag
-        data = cloudcheckr.loadData(data_url,"Groupings",debug)
+        data = cloudcheckr.loadData(data_url,days_to_report,"Groupings",debug)
         if data:
             if debug: log("%i tags returned" % len(data['Groupings']))
 

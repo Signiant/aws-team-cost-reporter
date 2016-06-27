@@ -7,11 +7,18 @@ def id():
 def log (message):
     print id() + ": " + message
 
-def loadData(url,merge_field = "Groupings",debug=False):
+# get the start and end filter string based on the number of days to report
+def getStartEndFilterString(number_of_days):
+    start_end_string = ""
+
+    return start_end_string
+
+def loadData(url,days_to_report,merge_field = "Groupings",debug=False):
     moreData = True
     base_url = url
     data = None
     data_full = dict()
+    records_read = 100
 
     # We need to handle merging the data into one response
     # https://pypi.python.org/pypi/jsonmerge
@@ -35,8 +42,10 @@ def loadData(url,merge_field = "Groupings",debug=False):
         # Result data could be paginated
         # See http://support.cloudcheckr.com/cloudcheckr-api-userguide/
         if data and 'HasNext' in data and data['HasNext'] == True:
+            log("Read %s records.  More data to read" % records_read)
             if debug: log("more data to read")
             url = base_url + "&next_token=" + data['NextToken']
+            records_read = records_read+100
         else:
             moreData = False
 
