@@ -35,7 +35,7 @@ def getTeamCost(team_name,configMap,debug):
             for team in configMap['teams']:
                 if team['name'] == team_name:
                     team_members = team['members']
-                    tag_to_match = team['ec2']['include_tag']
+                    tag_to_match = team[id()]['include_tag']
 
             if debug: log("Looking in cloudcheckr report data for tag name %s" % tag_to_match)
 

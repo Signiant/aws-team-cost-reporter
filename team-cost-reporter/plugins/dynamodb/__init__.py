@@ -53,7 +53,7 @@ def getTeamCost(team_name,configMap,debug):
             # Find our team info in the config file
             for team in configMap['teams']:
                 if team['name'] == team_name:
-                    config_tables = team['dynamodb']['tables']
+                    config_tables = team[id()]['tables']
 
             # Check each table or table prefix in the config file
             for config_match_table in config_tables:
