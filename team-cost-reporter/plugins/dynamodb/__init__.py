@@ -38,7 +38,7 @@ def getTeamCost(team_name,configMap,debug):
 
     log("getting team cost for team: %s for %i days" % (team_name,days_to_report))
 
-    # get the data url for the dynamodb plugin url
+    # get the data url for the plugin
     for config_plugin in configMap['plugins']:
         if config_plugin['name'] == id():
             if debug: log("plugin info found in config file")
@@ -70,20 +70,37 @@ def getTeamCost(team_name,configMap,debug):
                     if debug: log("Daily cost for %s = %s" % (cc_table_name, str(cc_table_cost)))
                     if debug: log("CC Table name %s. Looking for %s" % (cc_table_name, config_match_table))
 
-                    # Are we looking for a prefix?
-                    if str(config_match_table).endswith("*"):
+                    # Are we looking for a wildcard match or exact match?
+                    match = False
+                    if str(config_match_table).startswith("*") and str(config_match_table).endswith("*"):
+                        contain_match = config_match_table.split("*")[1]
+                        if debug: log("wildcard matching- contains %s" % contain_match)
+
+                        if contain_match.lower() in cc_table_name.lower():
+                            if debug: log("Contains match found")
+                            match = True
+                    elif str(config_match_table).endswith("*"):
                         prefix = config_match_table.split("*")[0]
-                        if debug: log("wildcard match - prefix %s" % prefix)
+                        if debug: log("wildcard matching - prefix %s" % prefix)
 
                         if cc_table_name.lower().startswith(prefix.lower()):
-                            if debug: log("Wildcard match found")
-                            totalCost = float(totalCost) + float(cc_table_cost)
-                    else:
-                        # This is not a wildcard so only match exact table name
-                        if cc_table_name.lower() == str(config_match_table).lower():
-                            if debug: log("Exact match found")
-                            totalCost = float(totalCost) + float(cc_table_cost)
+                            if debug: log("Wildcard prefix match found")
+                            match = True
+                    elif str(config_match_table).startswith("*"):
+                        suffix = config_match_table.split("*")[1]
+                        if debug: log("wildcard matching - suffix %s" % suffix)
 
-            team_cost['shared']['tables'] = format(float(totalCost),'.2f')
+                        if cc_table_name.lower().endswith(suffix.lower()):
+                            if debug: log("Wildcard suffix match found")
+                            match = True
+                    elif config_match_table == cc_table_name:
+                        if debug: log("Exact matching")
+                        match = True
+
+                    if match:
+                        totalCost = float(totalCost) + float(cc_table_cost)
+                        if debug: log("total cost for %s is %s" % (cc_table_name,totalCost))
+
+                        team_cost['shared'][cc_table_name] = format(float(totalCost),'.2f')
 
     return team_cost

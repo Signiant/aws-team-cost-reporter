@@ -19,7 +19,7 @@ def getTeamCost(team_name,configMap,debug):
 
     log("getting team cost for team: %s for %i days" % (team_name,days_to_report))
 
-    # get the data url for the ec2 plugin url
+    # get the data url for the plugin 
     for config_plugin in configMap['plugins']:
         if config_plugin['name'] == id():
             if debug: log("plugin info found in config file")
