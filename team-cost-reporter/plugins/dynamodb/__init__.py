@@ -102,5 +102,6 @@ def getTeamCost(team_name,configMap,debug):
                         if debug: log("total cost for %s is %s" % (cc_table_name,totalCost))
 
                         team_cost['shared'][cc_table_name] = format(float(totalCost),'.2f')
+                        totalCost = 0
 
     return team_cost

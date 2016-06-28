@@ -15,6 +15,7 @@ def getTeamCost(team_name,configMap,debug):
     data_url = ''
     data = ''
     tag_to_match = ''
+    totalCost = 0
     days_to_report = configMap['global']['days_to_report']
 
     log("getting team cost for team: %s for %i days" % (team_name,days_to_report))
@@ -38,7 +39,6 @@ def getTeamCost(team_name,configMap,debug):
                     tag_to_match = team[id()]['include_tag']
                     config_envs = team[id()]['envs']
 
-            totalCost = 0
             for config_match_env in config_envs:
                 log("looking for eb env %s in cloudcheckr data" % config_match_env)
 
@@ -70,7 +70,7 @@ def getTeamCost(team_name,configMap,debug):
                         if cc_env_name.lower().endswith(suffix.lower()):
                             if debug: log("Wildcard suffix match found")
                             match = True
-                    elif config_match_env == cc_env_name:
+                    elif config_match_env.lower() == cc_env_name.lower():
                         if debug: log("Exact matching")
                         match = True
 
@@ -83,5 +83,6 @@ def getTeamCost(team_name,configMap,debug):
                             if debug: log("total cost for %s is %s" % (cc_env_name,totalCost))
 
                         team_cost['shared'][cc_env_name] = format(float(totalCost),'.2f')
+                        totalCost = 0
 
     return team_cost

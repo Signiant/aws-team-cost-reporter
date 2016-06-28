@@ -47,7 +47,7 @@ def main(argv):
             plugin_results[plugin_name] = plugin_handle.getTeamCost(args.team,configMap,args.debug)
 
         # Output the results for the run of each plugin
-        output.outputResults(plugin_results)
+        output.outputResults(args.team,configMap,plugin_results,args.debug)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
