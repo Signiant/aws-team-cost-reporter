@@ -122,7 +122,7 @@ def getTotalTeamCost(configMap,plugin_results,debug):
 # produce an html file and return the filename
 def outputResults(team_name,configMap,plugin_results,debug):
 
-    pprint.pprint(plugin_results)
+    if debug: pprint.pprint(plugin_results)
 
     # Get the SMTP config
     smtp_server = configMap['global']['smtp']['server']
