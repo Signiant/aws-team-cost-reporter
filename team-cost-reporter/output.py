@@ -29,16 +29,37 @@ def getToAddr(team_name,configMap):
 
     return to_addr
 
-def getStartDate(configMap):
+def getEndDate(configMap):
     now = datetime.datetime.now()
     return now.strftime("%Y-%m-%d")
 
-def getEndDate(configMap):
+def getStartDate(configMap):
     number_of_days = configMap['global']['days_to_report']
 
     now = datetime.datetime.now()
     n_days_ago = now - datetime.timedelta(days=number_of_days)
     return n_days_ago.strftime("%Y-%m-%d")
+
+def getSharedDetailCosts(configMap,plugin_results,debug):
+    items_dict = dict()
+    cost_type = "shared"
+    table = "<table>"
+
+    table = table + "<tr><th>Service</th><th>Object</th><th>Period Cost</th></tr>"
+
+    for plugin_name in plugin_results:
+
+        if cost_type in plugin_results[plugin_name]:
+            table = table + "<tr><td>" + getPluginFriendlyName(plugin_name,configMap) + "</td></tr>"
+
+            items_dict = plugin_results[plugin_name][cost_type]
+
+            for item in items_dict:
+                table = table + "<tr><td></td><td>" + item + "</td><td>$" + items_dict[item] + "</td></tr>"
+
+    table = table + "</table>"
+
+    return table
 
 # This should return a table with the the shared summary
 # Which will then be added to the email template
@@ -74,7 +95,7 @@ def getIndividualCosts(configMap,plugin_results,debug):
 
         if cost_type in plugin_results[plugin_name]:
             table = table + "<tr><td>" + getPluginFriendlyName(plugin_name,configMap) + "</td></tr>"
-            
+
             items_dict = plugin_results[plugin_name][cost_type]
 
             for item in items_dict:
@@ -119,10 +140,11 @@ def outputResults(team_name,configMap,plugin_results,debug):
     values['teamName'] = team_name
     values['startDate'] = getStartDate(configMap)
     values['endDate'] = getEndDate(configMap)
+    values['reportGenerationDate'] = datetime.datetime.now().strftime("%Y-%m-%d")
     values['totalCost'] = str(getTotalTeamCost(configMap,plugin_results,debug))
-
     values['sharedSummaryCosts'] = getSharedSummaryCosts(configMap,plugin_results,debug)
     values['taggedCosts'] = getIndividualCosts(configMap,plugin_results,debug)
+    values['sharedDetailCosts'] = getSharedDetailCosts(configMap,plugin_results,debug)
 
     template = mail.EmailTemplate(template_name=email_template_file, values=values)
     server = mail.MailServer(server_name=smtp_server, username=smtp_user, password=smtp_pass, port=0, require_starttls=True)
