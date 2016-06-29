@@ -1,45 +1,70 @@
-cloudcheckr:
-  report_urls:
-    ec2: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=FOO&start=2016-06-01&end=2016-06-30&saved_filter_name=ec2costreport"
-    s3: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=FOO&start=2016-06-01&end=2016-06-30&saved_filter_name=s3costreport"
-    eb: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=FOO&start=2016-06-01&end=2016-06-30&saved_filter_name=ebcostreport"
-    dynamodb: "https://api.cloudcheckr.com/api/inventory.json/get_resources_dynamodb_details?access_key=FOO"
+global:
+  days_to_report: 7
+  smtp:
+    server: "my.smtp.server"
+    user: "smtpauth@mydomain.com"
+    password: "password"
+    from_addr: "reports@acme.com"
+    cc_addr: ""
+    template: "team-summary.html"
+
+plugins:
+  - name: "ec2"
+    friendly_name: "EC2"
+    data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ec2costsbyemail"
+
+  - name: "s3"
+    friendly_name: "S3 Storage"
+    data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=s3costsbyemail"
+
+  - name: "eb"
+    friendly_name: "Elastic Beanstalk"
+    data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ebcostsbyenv"
+
+  - name : "dynamodb"
+    friendly_name: "DynamoDB"
+    data_url: "https://api.cloudcheckr.com/api/inventory.json/get_resources_dynamodb_details?access_key=BLAH"
 
 teams:
-  - name: "team one"
-    email: team-one@acme.com
+  - name: "one"
+    email: "team-one@acme.com"
     budget: 2000
+    other_costs_weight: 50
     members:
-      user1@acme.com
-      user2@acme.com
+      - "user1@acme.com"
+      - "user2@acme.com"
+      - "user3@acme.com"
     ec2:
-      member_tag: "acme:email"
+      include_tag: "acme:email"
     s3:
-      member_tag: "acme:email"
+      include_tag: "acme:email"
     eb:
-      env_tag: "elasticbeanstalk:environment-name"
+      include_tag: "elasticbeanstalk:environment-name"
       envs:
-        "EB-ENV-USED-BY-TEAM-ONE"
-        "SECOND-EB-ENV-USED-BY-TEAM-ONE"
+        - "EB-ENV-1"
+        - "EB-ENV-2"
     dynamodb:
       tables:
-        "TEAM1_*"
-        "A_SPECIFIC_TABLE"
-  - name: "team two"
-    email: team-two@acme.com
+        - "teamone*"
+        - "AutomatedTestReports"
+        - "*somedata*"
+
+  - name: "two"
+    email: "team-two@acme.com"
     budget: 2000
+    other_costs_weight: 50
     members:
-      user3@acme.com
-      user4@acme.com
+      - "user10@acme.com"
+      - "user20@acme.com"
+      - "user30@acme.com"
     ec2:
-      member_tag: "acme:email"
+      include_tag: "acme:email"
     s3:
-      member_tag: "acme:email"
+      include_tag: "acme:email"
     eb:
-      env_tag: "elasticbeanstalk:environment-name"
+      include_tag: "elasticbeanstalk:environment-name"
       envs:
-        "EB-ENV-USED-BY-TEAM-TWO"
-        "SECOND-EB-ENV-USED-BY-TEAM-TWO"
+        - "*team-two*"
     dynamodb:
       tables:
-        "TEAM2_*"
+        - "TEAM-TWO*"
