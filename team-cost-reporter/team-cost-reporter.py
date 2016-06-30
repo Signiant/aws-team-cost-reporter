@@ -15,7 +15,7 @@ def readConfigFile(path):
         configMap = yaml.load(config_file_handle)
         config_file_handle.close()
     except:
-        print "Error: Unable to open config file %s" % path
+        print "Error: Unable to open config file %s or invalid yaml" % path
 
     return configMap
 
