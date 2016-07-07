@@ -13,6 +13,10 @@ plugins:
     friendly_name: "EC2"
     data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ec2costsbyemail"
 
+  - name: "ecs"
+    friendly_name: "ECS"
+    data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ecscostsbyemail"
+
   - name: "s3"
     friendly_name: "S3 Storage"
     data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=s3costsbyemail"
@@ -43,6 +47,11 @@ teams:
       envs:
         - "EB-ENV-1"
         - "EB-ENV-2"
+    ecs:
+      include_tag: "aws:cloudformation:stack-name"
+      envs:
+        - "ECS-Cluster_one"
+        - "ECS-Cluster-two"
     dynamodb:
       tables:
         - "teamone*"
@@ -65,6 +74,10 @@ teams:
       include_tag: "elasticbeanstalk:environment-name"
       envs:
         - "*team-two*"
+    ecs:
+      include_tag: "aws:cloudformation:stack-name"
+      envs:
+        - ""
     dynamodb:
       tables:
         - "TEAM-TWO*"

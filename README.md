@@ -16,10 +16,11 @@ The email report that gets generated for each team looks something like this...
 * You must have a [CloudCheckR](http://www.cloudcheckr.com) subscription.  Go get one now, it's a fantastic tool
 * You should have a tag defined on EC2 and S3 resources that you can report on.  We use "signiant:email" as our tag name but it can be anything.  Have a look at our [auto-tagger](https://github.com/Signiant/aws-auto-tagger) which can automatically add tags to EC2 resources as well
 * You'll need to configure AWS billing to [dump stats](http://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/configurecostallocreport.html) for your tags.
-* You'll need 3 custom grouping reports defined in cloudcheckr:
+* You'll need 4 custom grouping reports defined in cloudcheckr:
     * 1 for EC2 resources with your tag
     * 1 for S3 resources with your tag
     * 1 for all resources with the *elasticbeanstalk:environment-name* tag
+    * 1 for all resources with the *aws:cloudformation:stack-name* tag (for obtaining ECS cluster stats.  Your cluster must be launched by using cloudformation)
     * Something like this:
 
 ![CloudcheckR Report](https://raw.githubusercontent.com/Signiant/aws-team-cost-reporter/master/images/cloudcheckr-custom-report.jpg)
