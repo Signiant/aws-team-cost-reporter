@@ -43,7 +43,13 @@ def getTeamCost(team_name,configMap,debug):
                 log("looking for eb env %s in cloudcheckr data" % config_match_env)
 
                 for cc_env in data['Groupings']:
-                    cc_env_name = str(cc_env['Name'].split(tag_to_match)[1]).strip().lower()
+                    tag_value = cc_env['Name'].split(tag_to_match)
+                    if debug: log("tag_value: " + str(tag_value))
+
+                    if len(tag_value) == 2:
+                        cc_env_name = str(tag_value[1].strip().lower())
+                    else:
+                        continue
 
                     if debug: log("eb env in cloudcheckr data is %s" % cc_env_name)
 
