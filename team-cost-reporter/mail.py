@@ -50,9 +50,18 @@ class MailMessage(object):
         msg['Cc'] = ', '.join(self.cc_emails)
         msg['From'] = self.from_email
         msg['Subject'] = self.subject
-        msg.attach(MIMEText(self.body, 'plain'))
         if self.template:
-            msg.attach(MIMEText(self.template.render(),'html'))
+            #If the template is html, attach and set MIME
+            if self.template.html:
+                #Attach plain text, which will be used if a template cannot render
+                #The last attached element will always take precedence (according to RFC2046)
+                msg.attach(MIMEText(self.body, 'plain'))
+                msg.attach(MIMEText(self.template.render(),'html'))
+            #Otherwise, attach plaintext template
+            else:
+                msg.attach(MIMEText(self.template.render(),'plain'))
+        else:
+                msg.attach(MIMEText(self.body, 'plain'))
         return msg
 
 
@@ -67,10 +76,10 @@ class MailServer(object):
         self.require_starttls = require_starttls
 
 
-def send(mail_msg, mail_server=MailServer(), template=None):
+def send(mail_msg, mail_server=MailServer()):
     server = smtplib.SMTP(mail_server.server_name, 587)
     if mail_server.require_starttls:
         server.starttls()
     server.login(mail_server.username, mail_server.password)
-    server.sendmail(mail_msg.from_email, mail_msg.to_emails, mail_msg.get_message().as_string())
+    server.sendmail(mail_msg.from_email, (mail_msg.to_emails + mail_msg.cc_emails), mail_msg.get_message().as_string())
     server.close()
