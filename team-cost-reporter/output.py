@@ -132,7 +132,7 @@ def outputResults(team_name,configMap,plugin_results,debug):
     smtp_user = configMap['global']['smtp']['user']
     smtp_pass = configMap['global']['smtp']['password']
     smtp_from = configMap['global']['smtp']['from_addr']
-    smtp_cc = configMap['global']['smtp']['cc_addr']
+    smtp_cc = configMap['global']['smtp']['cc_addrs']
 
     email_template_file = configMap['global']['smtp']['template']
     email_to_addr = getToAddr(team_name,configMap)
@@ -153,5 +153,5 @@ def outputResults(team_name,configMap,plugin_results,debug):
     template = mail.EmailTemplate(template_name=email_template_file, values=values)
     server = mail.MailServer(server_name=smtp_server, username=smtp_user, password=smtp_pass, port=smtp_port, require_starttls=smtp_tls)
 
-    msg = mail.MailMessage(from_email=smtp_from, to_emails=[email_to_addr], cc_emails=[smtp_cc],subject=email_subject,template=template)
+    msg = mail.MailMessage(from_email=smtp_from, to_emails=[email_to_addr], cc_emails=smtp_cc,subject=email_subject,template=template)
     mail.send(mail_msg=msg, mail_server=server)

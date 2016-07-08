@@ -7,7 +7,9 @@ global:
     user: "smtpauth@mydomain.com"
     password: "password"
     from_addr: "reports@acme.com"
-    cc_addr: ""
+    cc_addrs:
+      - ""
+      - ""
     template: "team-summary.html"
 
 plugins:
