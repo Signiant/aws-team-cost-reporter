@@ -2,6 +2,8 @@ global:
   days_to_report: 7
   smtp:
     server: "my.smtp.server"
+    port: "587"
+    tls: True
     user: "smtpauth@mydomain.com"
     password: "password"
     from_addr: "reports@acme.com"

@@ -126,6 +126,9 @@ def outputResults(team_name,configMap,plugin_results,debug):
 
     # Get the SMTP config
     smtp_server = configMap['global']['smtp']['server']
+    smtp_tls = configMap['global']['smtp']['tls']
+    smtp_port = configMap['global']['smtp']['port']
+
     smtp_user = configMap['global']['smtp']['user']
     smtp_pass = configMap['global']['smtp']['password']
     smtp_from = configMap['global']['smtp']['from_addr']
@@ -148,7 +151,7 @@ def outputResults(team_name,configMap,plugin_results,debug):
     values['sharedDetailCosts'] = getSharedDetailCosts(configMap,plugin_results,debug)
 
     template = mail.EmailTemplate(template_name=email_template_file, values=values)
-    server = mail.MailServer(server_name=smtp_server, username=smtp_user, password=smtp_pass, port=0, require_starttls=True)
+    server = mail.MailServer(server_name=smtp_server, username=smtp_user, password=smtp_pass, port=smtp_port, require_starttls=smtp_tls)
 
     msg = mail.MailMessage(from_email=smtp_from, to_emails=[email_to_addr], cc_emails=[smtp_cc],subject=email_subject,template=template)
     mail.send(mail_msg=msg, mail_server=server)
