@@ -1,2 +1,3 @@
 /team-cost-reporter/config.yaml
 *.pyc
+.DS_Store
