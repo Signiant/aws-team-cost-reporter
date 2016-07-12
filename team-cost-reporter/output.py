@@ -41,9 +41,14 @@ def getStartDate(configMap):
     n_days_ago = now - datetime.timedelta(days=number_of_days)
     return n_days_ago.strftime("%Y-%m-%d")
 
-def writeTeamCosts(team_name,plugin_results,debug):
+def writeTeamCosts(team_name,configMap,plugin_results,debug):
     output_folder = "/output"
     output_filename = output_folder + "/" + team_name + ".json"
+
+    # Add the start and end dates to the raw output
+    plugin_results['period'] = dict()
+    plugin_results['period']['start'] = getStartDate(configMap)
+    plugin_results['period']['end'] = getEndDate(configMap)
 
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)
@@ -171,4 +176,4 @@ def outputResults(team_name,configMap,plugin_results,debug):
     mail.send(mail_msg=msg, mail_server=server)
 
     # Write the output to disk so other scripts can use it if needed
-    writeTeamCosts(team_name,plugin_results,debug)
+    writeTeamCosts(team_name,configMap,plugin_results,debug)
