@@ -2,6 +2,7 @@ import pprint
 import json
 import mail
 import datetime
+import os
 
 def id():
     return "output"
@@ -39,6 +40,19 @@ def getStartDate(configMap):
     now = datetime.datetime.now()
     n_days_ago = now - datetime.timedelta(days=number_of_days)
     return n_days_ago.strftime("%Y-%m-%d")
+
+def writeTeamCosts(team_name,plugin_results,debug):
+    output_folder = "/output"
+    output_filename = output_folder + "/" + team_name + ".json"
+
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder)
+
+    # Write the file
+    log("Writing raw team costs to %s for team %s" % (output_filename,team_name))
+    target = open(output_filename, 'w')
+    target.write(str(plugin_results))
+    target.close()
 
 def getSharedDetailCosts(configMap,plugin_results,debug):
     items_dict = dict()
@@ -155,3 +169,6 @@ def outputResults(team_name,configMap,plugin_results,debug):
 
     msg = mail.MailMessage(from_email=smtp_from, to_emails=[email_to_addr], cc_emails=smtp_cc,subject=email_subject,template=template)
     mail.send(mail_msg=msg, mail_server=server)
+
+    # Write the output to disk so other scripts can use it if needed
+    writeTeamCosts(team_name,plugin_results,debug)

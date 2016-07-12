@@ -57,6 +57,22 @@ docker run -ti \
         -t team-one \
         -d
 ```
+
+# Accessing the raw team cost data
+As the final step of running, the tool will write the team cost data to /output/TEAM_NAME.json.  This can then be accessed by other tools by using a bind mount into the running container.  For example:
+
+```bash
+docker run -ti \
+   -v /config/myconfigfile.yaml:/config.yaml \
+   -v /localoutput:/output \
+   signiant/aws-team-cost-reporter \
+        -c /config.yaml \
+        -t team-one \
+        -d
+```
+
+Each team data will be written to a seperate json file.
+
 # Project organization
 
 The project is structured as follows:
