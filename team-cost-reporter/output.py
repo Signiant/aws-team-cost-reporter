@@ -56,7 +56,7 @@ def writeTeamCosts(team_name,configMap,plugin_results,debug):
     # Write the file
     log("Writing raw team costs to %s for team %s" % (output_filename,team_name))
     target = open(output_filename, 'w')
-    target.write(str(plugin_results))
+    json.dump(plugin_results, target)
     target.close()
 
 def getSharedDetailCosts(configMap,plugin_results,debug):
