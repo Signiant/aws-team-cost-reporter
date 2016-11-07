@@ -73,7 +73,7 @@ def getSharedDetailCosts(configMap,plugin_results,debug):
 
             items_dict = plugin_results[plugin_name][cost_type]
 
-            for item in items_dict:
+            for item in sorted(items_dict):
                 table = table + "<tr><td></td><td>" + item + "</td><td>$" + items_dict[item] + "</td></tr>"
 
     table = table + "</table>"
