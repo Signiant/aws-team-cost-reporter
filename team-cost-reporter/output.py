@@ -97,7 +97,7 @@ def getSharedSummaryCosts(configMap,plugin_results,debug):
             for item in items_dict:
                 line_item_cost = line_item_cost + float(items_dict[item])
 
-            table = table + "<tr><td>" + getPluginFriendlyName(plugin_name,configMap) + "</td><td>$" + str(line_item_cost) + "</td></tr>"
+            table = table + "<tr><td>" + getPluginFriendlyName(plugin_name,configMap) + "</td><td>$" + "{0:.2f}".format(line_item_cost) + "</td></tr>"
 
     table = table + "</table>"
 
@@ -164,7 +164,7 @@ def outputResults(team_name,configMap,plugin_results,debug):
     values['startDate'] = getStartDate(configMap)
     values['endDate'] = getEndDate(configMap)
     values['reportGenerationDate'] = datetime.datetime.now().strftime("%Y-%m-%d")
-    values['totalCost'] = str(getTotalTeamCost(configMap,plugin_results,debug))
+    values['totalCost'] = "{0:.2f}".format(getTotalTeamCost(configMap,plugin_results,debug))
     values['sharedSummaryCosts'] = getSharedSummaryCosts(configMap,plugin_results,debug)
     values['taggedCosts'] = getIndividualCosts(configMap,plugin_results,debug)
     values['sharedDetailCosts'] = getSharedDetailCosts(configMap,plugin_results,debug)
