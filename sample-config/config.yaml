@@ -19,10 +19,12 @@ plugins:
 
   - name: "ecs"
     friendly_name: "ECS"
-    data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ecscostsbyemail"
+    #data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ecscostsbyemail"
+    aws_ce: "aws:cloudformation:stack-name"
 
   - name: "s3"
     friendly_name: "S3 Storage"
+    #data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=s3costsbyemail"
     aws_ce: "acme:email"
 
   - name: "eb"
