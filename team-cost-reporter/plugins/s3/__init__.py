@@ -13,21 +13,16 @@ def log (message):
 
 def getTeamCost(team_name,configMap,debug):
     team_cost = dict(individual=dict())
-    data_url = ''
-    data = ''
-    tag_to_match = ''
     days_to_report = configMap['global']['days_to_report']
 
     log("getting team cost for team: %s for %i days" % (team_name,days_to_report))
 
-    # get the data url for the plugin
     data = None
-    data_url = None
-    aws_ce = False
     for config_plugin in configMap['plugins']:
         if config_plugin['name'] == id():
             if debug: log("plugin info found in config file")
             if 'data_url' in config_plugin:
+                # get the data url for the plugin
                 data_url = config_plugin['data_url']
                 log("   getting data from cloudcheckr")
                 # get the report data from cloudcheckr which is by tag
@@ -43,7 +38,6 @@ def getTeamCost(team_name,configMap,debug):
                         ]
                     }
                 }
-                metrics = ['UnblendedCost', 'BlendedCost', 'UsageQuantity']
                 group_by = [
                     {
                         "Type": "TAG",
@@ -61,6 +55,7 @@ def getTeamCost(team_name,configMap,debug):
                 data = cloudcheckr.convert(data, group_by_tag, debug)
 
     if data:
+        tag_to_match = None
         if debug: log("%i tags returned" % len(data['Groupings']))
 
         # Find our team info in the config file

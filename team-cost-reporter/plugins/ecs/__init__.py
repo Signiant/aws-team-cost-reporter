@@ -1,94 +1,113 @@
-import urllib2,json,imp
-import pprint
-
 # Project modules
 import cloudcheckr
+import aws_cost_collector
 
-def log (message):
-    print id() + ": " + message
 
 def id():
     return "ecs"
 
+
+def log (message):
+    print id() + ": " + message
+
+
 def getTeamCost(team_name,configMap,debug):
     team_cost = dict(shared=dict())
-    data_url = ''
-    data = ''
-    tag_to_match = ''
     totalCost = 0
     days_to_report = configMap['global']['days_to_report']
 
     log("getting team cost for team: %s for %i days" % (team_name,days_to_report))
 
-    # get the data url for the ec2 plugin url
+    data = None
     for config_plugin in configMap['plugins']:
         if config_plugin['name'] == id():
             if debug: log("plugin info found in config file")
-            data_url = config_plugin['data_url']
+            if 'data_url' in config_plugin:
+                # get the data url for the plugin
+                data_url = config_plugin['data_url']
+                log("   getting data from cloudcheckr")
+                # get the report data from cloudcheckr which is by tag
+                data = cloudcheckr.loadData(data_url, days_to_report, "Groupings", debug)
+            elif 'aws_ce' in config_plugin:
+                group_by_tag = config_plugin['aws_ce']
+                granularity = 'DAILY'
+                filter = None
+                group_by = [
+                    {
+                        "Type": "TAG",
+                        "Key": group_by_tag
+                    }
+                ]
+                # get the report data from aws cost explorer
+                log("   getting data from aws using cost explorer")
+                data = aws_cost_collector.get_costs(days_to_report=days_to_report,
+                                                    granularity=granularity,
+                                                    filter=filter,
+                                                    group_by=group_by,
+                                                    debug=debug)
+                # We need to convert this to cloudcheckr format
+                data = cloudcheckr.convert(data, group_by_tag, debug)
 
-    if data_url:
-        # get the report data from cloudcheckr which is by tag
-        data = cloudcheckr.loadData(data_url,days_to_report,"Groupings",debug)
-        if data:
-            if debug: log("%i tags returned" % len(data['Groupings']))
+    if data:
+        tag_to_match = None
+        if debug: log("%i tags returned" % len(data['Groupings']))
 
-            # Find our team info in the config file
-            for team in configMap['teams']:
-                if team['name'] == team_name:
-                    team_members = team['members']
-                    tag_to_match = team[id()]['include_tag']
-                    config_envs = team[id()]['clusters']
+        # Find our team info in the config file
+        for team in configMap['teams']:
+            if team['name'] == team_name:
+                tag_to_match = team[id()]['include_tag']
+                config_envs = team[id()]['clusters']
 
-            for config_match_env in config_envs:
-                log("looking for ECS cluster %s in cloudcheckr data" % config_match_env)
+        for config_match_env in config_envs:
+            log("looking for ECS cluster %s in cloudcheckr data" % config_match_env)
 
-                for cc_env in data['Groupings']:
-                    tag_value = cc_env['Name'].split(tag_to_match)
-                    if debug: log("tag_value: " + str(tag_value))
+            for cc_env in data['Groupings']:
+                tag_value = cc_env['Name'].split(tag_to_match)
+                if debug: log("tag_value: " + str(tag_value))
 
-                    if len(tag_value) == 2:
-                        cc_env_name = str(tag_value[1].strip().lower())
-                    else:
-                        continue
+                if len(tag_value) == 2:
+                    cc_env_name = str(tag_value[1].strip().lower())
+                else:
+                    continue
 
-                    if debug: log("ecs cluster in cloudcheckr data is %s" % cc_env_name)
+                if debug: log("ecs cluster in cloudcheckr data is %s" % cc_env_name)
 
-                    # See if we're dealing with a wildcard or exact match
-                    match = False
-                    if str(config_match_env).startswith("*") and str(config_match_env).endswith("*"):
-                        contain_match = config_match_env.split("*")[1]
-                        if debug: log("wildcard matching- contains %s" % contain_match)
+                # See if we're dealing with a wildcard or exact match
+                match = False
+                if str(config_match_env).startswith("*") and str(config_match_env).endswith("*"):
+                    contain_match = config_match_env.split("*")[1]
+                    if debug: log("wildcard matching- contains %s" % contain_match)
 
-                        if contain_match.lower() in cc_env_name.lower():
-                            if debug: log("Contains match found")
-                            match = True
-                    elif str(config_match_env).endswith("*"):
-                        prefix = config_match_env.split("*")[0]
-                        if debug: log("wildcard matching - prefix %s" % prefix)
-
-                        if cc_env_name.lower().startswith(prefix.lower()):
-                            if debug: log("Wildcard prefix match found")
-                            match = True
-                    elif str(config_match_env).startswith("*"):
-                        suffix = config_match_env.split("*")[1]
-                        if debug: log("wildcard matching - suffix %s" % suffix)
-
-                        if cc_env_name.lower().endswith(suffix.lower()):
-                            if debug: log("Wildcard suffix match found")
-                            match = True
-                    elif config_match_env.lower() == cc_env_name.lower():
-                        if debug: log("Exact matching")
+                    if contain_match.lower() in cc_env_name.lower():
+                        if debug: log("Contains match found")
                         match = True
+                elif str(config_match_env).endswith("*"):
+                    prefix = config_match_env.split("*")[0]
+                    if debug: log("wildcard matching - prefix %s" % prefix)
 
-                    if match:
-                        # Match found - add cost
-                        if debug: log("*** Matching ecs cluster  found")
-                        for costitem in cc_env['Costs']:
-                            totalCost = totalCost + costitem['Amount']
+                    if cc_env_name.lower().startswith(prefix.lower()):
+                        if debug: log("Wildcard prefix match found")
+                        match = True
+                elif str(config_match_env).startswith("*"):
+                    suffix = config_match_env.split("*")[1]
+                    if debug: log("wildcard matching - suffix %s" % suffix)
 
-                            if debug: log("total cost for %s is %s" % (cc_env_name,totalCost))
+                    if cc_env_name.lower().endswith(suffix.lower()):
+                        if debug: log("Wildcard suffix match found")
+                        match = True
+                elif config_match_env.lower() == cc_env_name.lower():
+                    if debug: log("Exact matching")
+                    match = True
 
-                        team_cost['shared'][cc_env_name] = format(float(totalCost),'.2f')
-                        totalCost = 0
+                if match:
+                    # Match found - add cost
+                    if debug: log("*** Matching ecs cluster  found")
+                    for costitem in cc_env['Costs']:
+                        totalCost = totalCost + costitem['Amount']
+
+                        if debug: log("total cost for %s is %s" % (cc_env_name,totalCost))
+
+                    team_cost['shared'][cc_env_name] = format(float(totalCost),'.2f')
+                    totalCost = 0
 
     return team_cost
