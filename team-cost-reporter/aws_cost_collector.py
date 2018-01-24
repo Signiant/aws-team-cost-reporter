@@ -34,19 +34,31 @@ def _get_costs(ce_client, days_to_report, granularity, filter, group_by, next_to
     time_period = {'Start': start_date, 'End': end_date}
     metrics = ['UnblendedCost', 'BlendedCost', 'UsageQuantity']
     if next_token:
-        query_result = ce_client.get_cost_and_usage(TimePeriod=time_period,
-                                                    Granularity=granularity,
-                                                    Filter=filter,
-                                                    Metrics=metrics,
-                                                    GroupBy=group_by,
-                                                    NextPageToken=next_token)
+        if filter:
+            query_result = ce_client.get_cost_and_usage(TimePeriod=time_period,
+                                                        Granularity=granularity,
+                                                        Filter=filter,
+                                                        Metrics=metrics,
+                                                        GroupBy=group_by,
+                                                        NextPageToken=next_token)
+        else:
+            query_result = ce_client.get_cost_and_usage(TimePeriod=time_period,
+                                                        Granularity=granularity,
+                                                        Metrics=metrics,
+                                                        GroupBy=group_by,
+                                                        NextPageToken=next_token)
     else:
-        query_result = ce_client.get_cost_and_usage(TimePeriod=time_period,
-                                                    Granularity=granularity,
-                                                    Filter=filter,
-                                                    Metrics=metrics,
-                                                    GroupBy=group_by)
-
+        if filter:
+            query_result = ce_client.get_cost_and_usage(TimePeriod=time_period,
+                                                        Granularity=granularity,
+                                                        Filter=filter,
+                                                        Metrics=metrics,
+                                                        GroupBy=group_by)
+        else:
+            query_result = ce_client.get_cost_and_usage(TimePeriod=time_period,
+                                                        Granularity=granularity,
+                                                        Metrics=metrics,
+                                                        GroupBy=group_by)
     if 'ResultsByTime' in query_result:
         if 'NextPageToken' in query_result:
             if debug:
