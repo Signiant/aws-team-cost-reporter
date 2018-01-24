@@ -1,11 +1,10 @@
-import imp,argparse
+import argparse
 import os,sys
-import json,yaml
-import pprint
-
+import yaml
 # Project modules
 import plugin
 import output
+
 
 def readConfigFile(path):
     configMap = []
@@ -19,7 +18,7 @@ def readConfigFile(path):
 
     return configMap
 
-## mainFile
+
 def main(argv):
     plugin_results = dict()
 
