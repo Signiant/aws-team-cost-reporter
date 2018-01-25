@@ -28,31 +28,30 @@ def getTeamCost(team_name,configMap,debug):
                 # get the report data from cloudcheckr which is by tag
                 data = cloudcheckr.loadData(data_url, days_to_report, "Groupings", debug)
             elif 'aws_ce' in config_plugin:
-                group_by_tag = config_plugin['aws_ce']
+                group_by_tag = None
+                if 'group_by_tag' in config_plugin['aws_ce']:
+                    group_by_tag = config_plugin['aws_ce']['group_by_tag']
+                group_by = None
+                if group_by_tag:
+                    group_by = [
+                        {
+                            "Type": "TAG",
+                            "Key": group_by_tag
+                        }
+                    ]
                 granularity = 'DAILY'
-                filter = {
-                    "Dimensions": {
-                        "Key": "SERVICE",
-                        "Values": [
-                            "Amazon Simple Storage Service"
-                        ]
-                    }
-                }
-                group_by = [
-                    {
-                        "Type": "TAG",
-                        "Key": group_by_tag
-                    }
-                ]
-                # get the report data from aws cost explorer
-                log("   getting data from aws using cost explorer")
-                data = aws_cost_collector.get_costs(days_to_report=days_to_report,
-                                                    granularity=granularity,
-                                                    filter=filter,
-                                                    group_by=group_by,
-                                                    debug=debug)
-                # We need to convert this to cloudcheckr format
-                data = cloudcheckr.convert(data, group_by_tag, debug)
+                if 'filter' in config_plugin['aws_ce']:
+                    filter = config_plugin['aws_ce']['filter']
+                if group_by_tag and filter:
+                    # get the report data from aws cost explorer
+                    log("   getting data from aws using cost explorer")
+                    data = aws_cost_collector.get_costs(days_to_report=days_to_report,
+                                                        granularity=granularity,
+                                                        filter=filter,
+                                                        group_by=group_by,
+                                                        debug=debug)
+                    # We need to convert this to cloudcheckr format
+                    data = cloudcheckr.convert(data, group_by_tag, debug)
 
     if data:
         tag_to_match = None

@@ -29,24 +29,30 @@ def getTeamCost(team_name,configMap,debug):
                 # get the report data from cloudcheckr which is by tag
                 data = cloudcheckr.loadData(data_url, days_to_report, "Groupings", debug)
             elif 'aws_ce' in config_plugin:
-                group_by_tag = config_plugin['aws_ce']
+                group_by_tag = None
+                if 'group_by_tag' in config_plugin['aws_ce']:
+                    group_by_tag = config_plugin['aws_ce']['group_by_tag']
+                group_by = None
+                if group_by_tag:
+                    group_by = [
+                        {
+                            "Type": "TAG",
+                            "Key": group_by_tag
+                        }
+                    ]
                 granularity = 'DAILY'
-                filter = None
-                group_by = [
-                    {
-                        "Type": "TAG",
-                        "Key": group_by_tag
-                    }
-                ]
-                # get the report data from aws cost explorer
-                log("   getting data from aws using cost explorer")
-                data = aws_cost_collector.get_costs(days_to_report=days_to_report,
-                                                    granularity=granularity,
-                                                    filter=filter,
-                                                    group_by=group_by,
-                                                    debug=debug)
-                # We need to convert this to cloudcheckr format
-                data = cloudcheckr.convert(data, group_by_tag, debug)
+                if 'filter' in config_plugin['aws_ce']:
+                    filter = config_plugin['aws_ce']['filter']
+                if group_by_tag and filter:
+                    # get the report data from aws cost explorer
+                    log("   getting data from aws using cost explorer")
+                    data = aws_cost_collector.get_costs(days_to_report=days_to_report,
+                                                        granularity=granularity,
+                                                        filter=filter,
+                                                        group_by=group_by,
+                                                        debug=debug)
+                    # We need to convert this to cloudcheckr format
+                    data = cloudcheckr.convert(data, group_by_tag, debug)
 
     if data:
         tag_to_match = None
@@ -59,7 +65,7 @@ def getTeamCost(team_name,configMap,debug):
                 config_envs = team[id()]['clusters']
 
         for config_match_env in config_envs:
-            log("looking for ECS cluster %s in cloudcheckr data" % config_match_env)
+            log("looking for ECS cluster %s in report data" % config_match_env)
 
             for cc_env in data['Groupings']:
                 tag_value = cc_env['Name'].split(tag_to_match)
@@ -70,7 +76,7 @@ def getTeamCost(team_name,configMap,debug):
                 else:
                     continue
 
-                if debug: log("ecs cluster in cloudcheckr data is %s" % cc_env_name)
+                if debug: log("ecs cluster in report data is %s" % cc_env_name)
 
                 # See if we're dealing with a wildcard or exact match
                 match = False
