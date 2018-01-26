@@ -15,17 +15,57 @@ global:
 plugins:
   - name: "ec2"
     friendly_name: "EC2"
-    data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ec2costsbyemail"
+    # data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ec2costsbyemail"
+    aws_ce:
+      group_by_tag: "acme:email"
+      filter:
+        # This filter gets all EC2 costs from all linked account other than the one specified
+        And:
+          - Not:
+              Dimensions:
+                Key: "LINKED_ACCOUNT"
+                Values:
+                  - "123456789012"
+          - Dimensions:
+              Key: SERVICE
+              Values:
+                - "Amazon Elastic Compute Cloud - Compute"
+                - "EC2 - Other"
+                - "Amazon Elastic Load Balancing"
+                - "AWS Key Management Service"
+                - "AWS Lambda"
+
 
   - name: "ecs"
     friendly_name: "ECS"
-    #data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ecscostsbyemail"
-    aws_ce: "aws:cloudformation:stack-name"
+    # data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ecscostsbyemail"
+    aws_ce:
+      group_by_tag: "aws:cloudformation:stack-name"
+      filter:
+        # This filter gets all ECS costs from all linked account other than the one specified
+        Not:
+          Dimensions:
+            Key: "LINKED_ACCOUNT"
+            Values:
+              - "123456789012"
 
   - name: "s3"
     friendly_name: "S3 Storage"
-    #data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=s3costsbyemail"
-    aws_ce: "acme:email"
+    # data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=s3costsbyemail"
+    aws_ce:
+      group_by_tag: "acme:email"
+      filter:
+        # This filter gets all S3 costs from all linked account other than the one specified
+        And:
+          - Not:
+              Dimensions:
+                Key: "LINKED_ACCOUNT"
+                Values:
+                  - "123456789012"
+          - Dimensions:
+              Key: SERVICE
+              Values:
+                - "Amazon Simple Storage Service"
 
   - name: "eb"
     friendly_name: "Elastic Beanstalk"
