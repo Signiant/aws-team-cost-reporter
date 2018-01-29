@@ -19,7 +19,7 @@ plugins:
     aws_ce:
       group_by_tag: "acme:email"
       filter:
-        # This filter gets all EC2 costs from all linked account other than the one specified
+        # This filter gets all EC2 costs from all linked accounts other than the one specified
         And:
           - Not:
               Dimensions:
@@ -42,7 +42,7 @@ plugins:
     aws_ce:
       group_by_tag: "aws:cloudformation:stack-name"
       filter:
-        # This filter gets all ECS costs from all linked account other than the one specified
+        # This filter gets all ECS costs from all linked accounts other than the one specified
         Not:
           Dimensions:
             Key: "LINKED_ACCOUNT"
@@ -55,7 +55,7 @@ plugins:
     aws_ce:
       group_by_tag: "acme:email"
       filter:
-        # This filter gets all S3 costs from all linked account other than the one specified
+        # This filter gets all S3 costs from all linked accounts other than the one specified
         And:
           - Not:
               Dimensions:
@@ -69,7 +69,17 @@ plugins:
 
   - name: "eb"
     friendly_name: "Elastic Beanstalk"
-    data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ebcostsbyenv"
+    # data_url: "https://api.cloudcheckr.com/api/billing.json/get_detailed_billing_with_grouping?access_key=BLAH&saved_filter_name=ebcostsbyenv"
+    aws_ce:
+      group_by_tag: "elasticbeanstalk:environment-name"
+      filter:
+        # This filter gets all EB costs from all linked accounts other than the one specified
+        Not:
+          Dimensions:
+            Key: "LINKED_ACCOUNT"
+            Values:
+              - "123456789012"
+
 
   - name : "dynamodb"
     friendly_name: "DynamoDB"
