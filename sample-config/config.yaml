@@ -78,18 +78,15 @@ plugins:
       accounts:
         - name: "Account 1"
           credentials:
-            # If credentials are mounted in - supply aws_profile for this account
-            # profile_name: "account_one"
-            # Alternatively provide aws_access_key_id and aws_secret_access_key for this account
-            aws_access_key_id: "XXXXXXXXXXXXXXXXXXXX"
-            aws_secret_access_key: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            role_arn: "arn:aws:iam::234567890123:role/ATCR_Role"
+            external_id: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
           regions:
             - "us-east-1"
             - "us-west-2"
         - name: "Account 2"
           credentials:
-            aws_access_key_id: "XXXXXXXXXXXXXXXXXXXX"
-            aws_secret_access_key: "XXXXXXXXXXXXXXXXXXXX"
+            role_arn: "arn:aws:iam::345678901234:role/ATCR_Role"
+            external_id: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
           regions:
             - "us-west-1"
             - "eu-west-1"
