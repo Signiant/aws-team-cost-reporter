@@ -73,7 +73,26 @@ plugins:
 
   - name : "dynamodb"
     friendly_name: "DynamoDB"
-    data_url: "https://api.cloudcheckr.com/api/inventory.json/get_resources_dynamodb_details?access_key=BLAH"
+    # data_url: "https://api.cloudcheckr.com/api/inventory.json/get_resources_dynamodb_details?access_key=BLAH"
+    aws_dynamodb:
+      accounts:
+        - name: "Account 1"
+          credentials:
+            # If credentials are mounted in - supply aws_profile for this account
+            # profile_name: "account_one"
+            # Alternatively provide aws_access_key_id and aws_secret_access_key for this account
+            aws_access_key_id: "XXXXXXXXXXXXXXXXXXXX"
+            aws_secret_access_key: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+          regions:
+            - "us-east-1"
+            - "us-west-2"
+        - name: "Account 2"
+          credentials:
+            aws_access_key_id: "XXXXXXXXXXXXXXXXXXXX"
+            aws_secret_access_key: "XXXXXXXXXXXXXXXXXXXX"
+          regions:
+            - "us-west-1"
+            - "eu-west-1"
 
 teams:
   - name: "one"
