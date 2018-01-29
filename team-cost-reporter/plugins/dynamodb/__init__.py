@@ -55,15 +55,17 @@ def _get_table_details(dynamodb_client, table_name, debug=False):
 
 def _get_table_info_from_region(account_creds, region, debug=False):
     table_list = []
-    if 'profile_name' in account_creds:
-        SESSION = boto3.session.Session(profile_name=account_creds['profile_name'], region_name=region)
-    elif 'aws_access_key_id' in account_creds and 'aws_secret_access_key' in account_creds:
-        SESSION = boto3.session.Session(aws_access_key_id=account_creds['aws_access_key_id'],
-                                        aws_secret_access_key=account_creds['aws_secret_access_key'],
-                                        region_name=region)
-    else:
-        log('Invalid credentials provided - cannot get DynamoDB data')
-        return table_list
+    STS = boto3.client('sts')
+    assumedRole = STS.assume_role(RoleArn=account_creds['role_arn'],
+                                  ExternalId=account_creds['external_id'],
+                                  RoleSessionName="AssumedRole")
+    aws_access_key_id = assumedRole['Credentials']['AccessKeyId']
+    aws_secret_access_key = assumedRole['Credentials']['SecretAccessKey']
+    aws_session_token = assumedRole['Credentials']['SessionToken']
+    SESSION = boto3.session.Session(aws_access_key_id=aws_access_key_id,
+                                    aws_secret_access_key=aws_secret_access_key,
+                                    aws_session_token=aws_session_token,
+                                    region_name=region)
     DYNAMODB = SESSION.client('dynamodb')
     # Get the list of table names in this region
     table_name_list = _get_table_names(DYNAMODB, debug=debug)
