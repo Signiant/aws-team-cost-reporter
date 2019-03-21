@@ -1,7 +1,9 @@
 import logging
 import boto3
 # Project modules
+import aws_cost_collector
 import cloudcheckr
+
 
 logging.getLogger('botocore').setLevel(logging.CRITICAL)
 
@@ -82,6 +84,36 @@ def _get_table_info(account_creds, region_list, debug=False):
     return account_dynamo_details
 
 
+def _is_match(from_results, from_config_file, debug=False):
+    # See if we're dealing with a wildcard or exact match
+    match = False
+    if str(from_config_file).startswith("*") and str(from_config_file).endswith("*"):
+        contain_match = from_config_file.split("*")[1]
+        if debug: log("wildcard matching- contains %s" % contain_match)
+
+        if contain_match.lower() in from_results.lower():
+            if debug: log("Contains match found")
+            match = True
+    elif str(from_config_file).endswith("*"):
+        prefix = from_config_file.split("*")[0]
+        if debug: log("wildcard matching - prefix %s" % prefix)
+
+        if from_results.lower().startswith(prefix.lower()):
+            if debug: log("Wildcard prefix match found")
+            match = True
+    elif str(from_config_file).startswith("*"):
+        suffix = from_config_file.split("*")[1]
+        if debug: log("wildcard matching - suffix %s" % suffix)
+
+        if from_results.lower().endswith(suffix.lower()):
+            if debug: log("Wildcard suffix match found")
+            match = True
+    elif from_config_file.lower() == from_results.lower():
+        if debug: log("Exact matching")
+        match = True
+    return match
+
+
 def get_table_info(account_list, debug=False):
     dynamo_db_details = []
     for account in account_list:
@@ -93,7 +125,7 @@ def get_table_info(account_list, debug=False):
 
 def getDailyTableCost(prov_read,prov_write,storage):
     '''
-    We need this here because the data from cloudcheckR is incorrect
+    We need this here because the data from cloudcheckr is incorrect
     When cloudcheckr is fixed, this is no longer needed
     :param prov_read: provisioned read throughput
     :param prov_write: provisioned write throughput
@@ -142,60 +174,88 @@ def getTeamCost(team_name,configMap,debug):
                 # over the time period for something like autoscaling of throughput or changes in table size
                 # Same limitation applies equally to the cloudcheckr data, so we're no worse off...
                 data = get_table_info(account_list, debug)
+            elif 'aws_ce' in config_plugin:
+                group_by_tag = None
+                if 'group_by_tag' in config_plugin['aws_ce']:
+                    group_by_tag = config_plugin['aws_ce']['group_by_tag']
+                group_by = None
+                if group_by_tag:
+                    group_by = [
+                        {
+                            "Type": "TAG",
+                            "Key": group_by_tag
+                        }
+                    ]
+                granularity = 'DAILY'
+                if 'filter' in config_plugin['aws_ce']:
+                    filter = config_plugin['aws_ce']['filter']
+                if group_by_tag and filter:
+                    # get the report data from aws cost explorer
+                    log("   getting data from aws using cost explorer")
+                    data = aws_cost_collector.get_costs(days_to_report=days_to_report,
+                                                        granularity=granularity,
+                                                        filter=filter,
+                                                        group_by=group_by,
+                                                        debug=debug)
+                    # We need to convert this to cloudcheckr format
+                    data = cloudcheckr.convert(data, group_by_tag, debug)
 
     if data:
-        if debug: log("%i tables returned" % len(data['DynamoDbDetails']))
-
+        tag_to_match = None
         # Find our team info in the config file
         for team in configMap['teams']:
             if team['name'] == team_name:
-                config_tables = team[id()]['tables']
+                config_envs = team[id()]['tables']
+                tag_to_match = team[id()]['include_tag']
 
-        # Check each table or table prefix in the config file
-        for config_match_table in config_tables:
-            log("looking for table %s in report data" % config_match_table)
+        if 'aws_dynamodb' in config_plugin:
+            if debug: log("%i tables returned" % len(data['DynamoDbDetails']))
+            for config_match_env in config_envs:
+                log("looking for table %s in report data" % config_match_env)
 
-            # Now compare each table in the config to the report data
-            for cc_table in data['DynamoDbDetails']:
-                cc_table_name = str(cc_table['TableName'])
+                # Now compare each table in the config to the report data
+                for cc_table in data['DynamoDbDetails']:
+                    _name = str(cc_table['TableName'])
 
-                cc_table_cost = getDailyTableCost(cc_table['ProvisionedThroughputRead'],cc_table['ProvisionedThroughputWrite'],cc_table['TableSizeBytes']) * days_to_report
+                    cc_table_cost = getDailyTableCost(cc_table['ProvisionedThroughputRead'],
+                                                      cc_table['ProvisionedThroughputWrite'],
+                                                      cc_table['TableSizeBytes']) * days_to_report
 
-                if debug: log("Daily cost for %s = %s" % (cc_table_name, str(cc_table_cost)))
-                if debug: log("CC Table name %s. Looking for %s" % (cc_table_name, config_match_table))
+                    if debug: log("Daily cost for %s = %s" % (_name, str(cc_table_cost)))
+                    if debug: log("CC Table name %s. Looking for %s" % (_name, config_match_env))
 
-                # Are we looking for a wildcard match or exact match?
-                match = False
-                if str(config_match_table).startswith("*") and str(config_match_table).endswith("*"):
-                    contain_match = config_match_table.split("*")[1]
-                    if debug: log("wildcard matching- contains %s" % contain_match)
+                    if _is_match(_name, config_match_env, debug):
+                        totalCost = float(totalCost) + float(cc_table_cost)
+                        if debug: log("total cost for %s is %s" % (_name, totalCost))
 
-                    if contain_match.lower() in cc_table_name.lower():
-                        if debug: log("Contains match found")
-                        match = True
-                elif str(config_match_table).endswith("*"):
-                    prefix = config_match_table.split("*")[0]
-                    if debug: log("wildcard matching - prefix %s" % prefix)
+                        team_cost['shared'][_name] = format(float(totalCost), '.2f')
+                        totalCost = 0
 
-                    if cc_table_name.lower().startswith(prefix.lower()):
-                        if debug: log("Wildcard prefix match found")
-                        match = True
-                elif str(config_match_table).startswith("*"):
-                    suffix = config_match_table.split("*")[1]
-                    if debug: log("wildcard matching - suffix %s" % suffix)
+        if 'aws_ce' in config_plugin:
+            if debug: log("%i tags returned" % len(data['Groupings']))
+            for config_match_env in config_envs:
+                log("looking for table %s in report data" % config_match_env)
 
-                    if cc_table_name.lower().endswith(suffix.lower()):
-                        if debug: log("Wildcard suffix match found")
-                        match = True
-                elif config_match_table == cc_table_name:
-                    if debug: log("Exact matching")
-                    match = True
+                for cc_env in data['Groupings']:
+                    tag_value = cc_env['Name'].split(tag_to_match)
+                    if debug: log("tag_value: " + str(tag_value))
 
-                if match:
-                    totalCost = float(totalCost) + float(cc_table_cost)
-                    if debug: log("total cost for %s is %s" % (cc_table_name,totalCost))
+                    if len(tag_value) == 2:
+                        cc_env_name = str(tag_value[1].strip().lower())
+                    else:
+                        continue
 
-                    team_cost['shared'][cc_table_name] = format(float(totalCost),'.2f')
-                    totalCost = 0
+                    if debug: log("dynamodb table in report data is %s" % cc_env_name)
+
+                    if _is_match(cc_env_name, config_match_env, debug):
+                        # Match found - add cost
+                        if debug: log("*** Matching dynamodb table found")
+                        for costitem in cc_env['Costs']:
+                            totalCost = totalCost + costitem['Amount']
+
+                            if debug: log("total cost for %s is %s" % (cc_env_name, totalCost))
+
+                        team_cost['shared'][cc_env_name] = format(float(totalCost), '.2f')
+                        totalCost = 0
 
     return team_cost
