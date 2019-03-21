@@ -84,31 +84,31 @@ def _get_table_info(account_creds, region_list, debug=False):
     return account_dynamo_details
 
 
-def _is_match(cc_env_name, config_match_env, debug=False):
+def _is_match(from_results, from_config_file, debug=False):
     # See if we're dealing with a wildcard or exact match
     match = False
-    if str(config_match_env).startswith("*") and str(config_match_env).endswith("*"):
-        contain_match = config_match_env.split("*")[1]
+    if str(from_config_file).startswith("*") and str(from_config_file).endswith("*"):
+        contain_match = from_config_file.split("*")[1]
         if debug: log("wildcard matching- contains %s" % contain_match)
 
-        if contain_match.lower() in cc_env_name.lower():
+        if contain_match.lower() in from_results.lower():
             if debug: log("Contains match found")
             match = True
-    elif str(config_match_env).endswith("*"):
-        prefix = config_match_env.split("*")[0]
+    elif str(from_config_file).endswith("*"):
+        prefix = from_config_file.split("*")[0]
         if debug: log("wildcard matching - prefix %s" % prefix)
 
-        if cc_env_name.lower().startswith(prefix.lower()):
+        if from_results.lower().startswith(prefix.lower()):
             if debug: log("Wildcard prefix match found")
             match = True
-    elif str(config_match_env).startswith("*"):
-        suffix = config_match_env.split("*")[1]
+    elif str(from_config_file).startswith("*"):
+        suffix = from_config_file.split("*")[1]
         if debug: log("wildcard matching - suffix %s" % suffix)
 
-        if cc_env_name.lower().endswith(suffix.lower()):
+        if from_results.lower().endswith(suffix.lower()):
             if debug: log("Wildcard suffix match found")
             match = True
-    elif config_match_env.lower() == cc_env_name.lower():
+    elif from_config_file.lower() == from_results.lower():
         if debug: log("Exact matching")
         match = True
     return match
