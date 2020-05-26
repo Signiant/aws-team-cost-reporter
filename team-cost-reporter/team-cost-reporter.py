@@ -1,5 +1,6 @@
 import argparse
-import os,sys
+import os
+import sys
 import yaml
 # Project modules
 import plugin
@@ -11,10 +12,10 @@ def readConfigFile(path):
 
     try:
         config_file_handle = open(path)
-        configMap = yaml.load(config_file_handle)
+        configMap = yaml.full_load(config_file_handle)
         config_file_handle.close()
     except:
-        print "Error: Unable to open config file %s or invalid yaml" % path
+        print("Error: Unable to open config file %s or invalid yaml" % path)
 
     return configMap
 
@@ -37,7 +38,7 @@ def main(argv):
         # Invoke each of the plugins and store the results
         for config_plugin in configMap['plugins']:
             plugin_name = config_plugin['name']
-            print "Loading plugin %s" % plugin_name
+            print("Loading plugin %s" % plugin_name)
 
             # Load the plugin from the plugins folder
             plugin_handle = plugin.loadPlugin(plugin_name)

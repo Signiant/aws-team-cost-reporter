@@ -1,8 +1,9 @@
 __author__ = 'Ludmal.DESILVA'
 
-import os, email, smtplib
-from email.mime.text import MIMEText
+import os
+import smtplib
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 path = os.path.dirname(__file__)
 #modify this to change the Template Directory
@@ -18,7 +19,7 @@ class EmailTemplate():
     def render(self):
         content = open(path + TEMPLATE_DIR + self.template_name).read()
 
-        for k,v in self.values.iteritems():
+        for k,v in self.values.items():
             content = content.replace('[%s]' % k,v)
 
         return content
@@ -81,6 +82,11 @@ def send(mail_msg, mail_server=MailServer()):
     if mail_server.require_starttls:
         server.starttls()
     if mail_server.username:
-        server.login(mail_server.username, mail_server.password)
-    server.sendmail(mail_msg.from_email, (mail_msg.to_emails + mail_msg.cc_emails), mail_msg.get_message().as_string())
-    server.close()
+        try:
+            server.login(mail_server.username, mail_server.password)
+            server.sendmail(mail_msg.from_email, (mail_msg.to_emails + mail_msg.cc_emails),
+                            mail_msg.get_message().as_string())
+        except Exception as e:
+            print("Error sending mail %s" % e)
+        finally:
+            server.close()
