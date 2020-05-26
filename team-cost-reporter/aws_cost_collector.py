@@ -10,7 +10,6 @@ def id():
 
 
 def log (message):
-    #print(id() + ": " + message)
     print(id() + ": %s" % message)
 
 
