@@ -7,8 +7,8 @@ def id():
     return "ec2"
 
 
-def log (message):
-    print id() + ": " + message
+def log(message):
+    print(id() + ": " + message)
 
 
 def getTeamCost(team_name,configMap,debug):

@@ -1,8 +1,10 @@
-import urllib2
-import json
-import logging
-from jsonmerge import Merger
 import datetime
+import json
+
+import urllib.error
+import urllib.parse
+import urllib.request
+from jsonmerge import Merger
 
 
 def id():
@@ -10,7 +12,7 @@ def id():
 
 
 def log (message):
-    print id() + ": " + message
+    print(id() + ": " + message)
 
 
 def getStartEndFilterString(number_of_days):
@@ -47,9 +49,9 @@ def loadData(base_url,days_to_report,merge_field = "Groupings",debug=False):
     while moreData:
         if debug: log("Calling URL %s" % str(calling_url))
         try:
-            response = urllib2.urlopen(calling_url)
+            response = urllib.request.urlopen(calling_url)
             data = json.loads(response.read())
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             log("ERROR: Unable to open URL %s : %s" % (date_filter_url,e.reason))
 
         # Merge the results...needed if the data is paginated.
@@ -167,6 +169,9 @@ def convert(cost_data, tag, debug=False):
     return_data['Total'] = total
     return_data['Max'] = max
     return_data['Min'] = min
-    return_data['Average'] = total / count
+    if count == 0:
+        return_data['Average'] = 0
+    else:
+        return_data['Average'] = total / count
     return_data['Groupings'] = groupings
     return return_data

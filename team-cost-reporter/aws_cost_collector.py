@@ -10,7 +10,7 @@ def id():
 
 
 def log (message):
-    print id() + ": " + message
+    print(id() + ": %s" % message)
 
 
 def get_start_end_strings(number_of_days):

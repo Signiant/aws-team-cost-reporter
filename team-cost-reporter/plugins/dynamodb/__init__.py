@@ -12,8 +12,8 @@ def id():
     return "dynamodb"
 
 
-def log (message):
-    print id() + ": " + message
+def log(message):
+    print(id() + ": " + message)
 
 
 def _get_table_names(dynamodb_client, start_name=None, debug=False):
